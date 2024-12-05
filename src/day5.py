@@ -20,14 +20,10 @@ def order_update(succ_map, update):
 
     while elements:
         for e in copy.copy(elements):
-            if e not in succ_map:
+            if e not in succ_map or any([n in elements for n in succ_map[e]]):
                 ordered.append(e)
                 elements.remove(e)
                 continue
-
-            if not any([n in elements for n in succ_map[e]]):
-                ordered.append(e)
-                elements.remove(e)
 
     return ordered[::-1]
 
