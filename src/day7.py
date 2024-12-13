@@ -1,67 +1,67 @@
 from util import read_inputs
+import time
 
 
-def permutation_a(n: int):
-    if n == 1:
-        return ["+", "*"]
-    else:
-        ops = permutation_a(n - 1)
-        return [o + "+" for o in ops] + [o + "*" for o in ops]
+def check_a(numbers, target):
+    if len(numbers) == 1:
+        return numbers[0] == target
+
+    nums = numbers.copy()
+    n = nums.pop()
+    if n > target:
+        return False
+
+    res = check_a(nums, target - n) or (
+        check_a(nums, target // n) if target % n == 0 else False
+    )
+
+    return res
 
 
-def permutation_b(n: int):
-    if n == 1:
-        return ["+", "*", "|"]
-    else:
-        ops = permutation_b(n - 1)
-        return [o + "+" for o in ops] + [o + "*" for o in ops] + [o + "|" for o in ops]
+def check_b(numbers, target):
+    if len(numbers) == 1:
+        return numbers[0] == target
 
+    nums = numbers.copy()
+    n = nums.pop()
+    if n > target:
+        return False
 
-def check(numbers, operators, target):
-    acc = numbers.pop(0)
-    while operators:
-        op = operators.pop(0)
-        n = numbers.pop(0)
-        if op == "+":
-            acc += n
-        elif op == "*":
-            acc *= n
-        elif op == "|":
-            acc = int(str(acc) + str(n))
+    res = (
+        check_b(nums, target - n)
+        or (check_b(nums, target // n) if target % n == 0 else False)
+        or (
+            check_b(nums, int(str(target).removesuffix(str(n))))
+            if str(target).endswith(str(n)) and len(str(target)) > len(str(n))
+            else False
+        )
+    )
 
-    return acc == target
+    return res
 
 
 def part_a(input):
-
-    sum = 0
-    for l in input:
-        target = int(l.split(":")[0])
-        numbers = list(map(int, l.split(" ")[1:]))
-
-        for ops in permutation_a(len(numbers) - 1):
-            if check(numbers.copy(), list(ops), target):
-                sum += target
-                break
-
-    return sum
+    problems = [(list(map(int, l.split(" ")[1:])), int(l.split(":")[0])) for l in input]
+    return sum([t for p, t in problems if check_a(p, t)])
 
 
 def part_b(input):
-    sum = 0
-    for l in input:
-        target = int(l.split(":")[0])
-        numbers = list(map(int, l.split(" ")[1:]))
-
-        for ops in permutation_b(len(numbers) - 1):
-            if check(numbers.copy(), list(ops), target):
-                sum += target
-                break
-
-    return sum
+    problems = [(list(map(int, l.split(" ")[1:])), int(l.split(":")[0])) for l in input]
+    return sum([t for p, t in problems if check_b(p, t)])
 
 
+print("\nsolutions: ")
 for p, x in zip([part_a, part_b], [3749, 11387]):
     t, r = read_inputs(7)
     assert p(t) == x
-    print(p(r))
+    print(" -", p(r))
+
+
+t, r = read_inputs(7)
+times = []
+for i in range(500):
+    start = time.time()
+    part_b(r)
+    times.append(time.time() - start)
+
+print(f"\navg time: {sum(times) / len(times) * 1000:.2f}ms")
